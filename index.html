@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>薬理学○×3択問題</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- リスト選択画面 -->
+  <div id="list-page">
+    <h2>問題作成ページ</h2>
+    <div id="list-buttons"></div>
+    <button id="add-list-btn">＋新しいリストを追加</button>
+  </div>
+
+  <!-- 問題入力画面 -->
+  <div id="input-screen" style="display: none;">
+    <h2>問題入力ページ</h2>
+    <input type="text" id="current-list-name" placeholder="リスト名"><br><br>
+    <label>正文（1行ずつ）</label><br>
+    <textarea id="true-list" rows="8" cols="40"></textarea><br><br>
+    <label>誤文（1行ずつ）</label><br>
+    <textarea id="false-list" rows="8" cols="40"></textarea><br><br>
+    <button onclick="generateQuestions()">出題開始</button>
+    <button onclick="setupListPage(); document.getElementById('input-screen').style.display='none'; document.getElementById('list-page').style.display='block';">保存して戻る</button>
+  </div>
+
+  <!-- クイズ画面 -->
+  <div id="quiz-screen" style="display: none;">
+    <h2>薬理学○×3択クイズ</h2>
+    <div id="progress"></div>
+    <div id="question-texts"></div>
+    <table id="answer-table"></table>
+    <div>
+      <input type="checkbox" id="mark-question" onchange="toggleMark()"> チェック
+      <button onclick="toggleExplanation()">解説</button>
+    </div>
+    <div id="explanation" style="display: none;"></div>
+    <div id="result-message"></div>
+    <div>
+      <button onclick="prevQuestion()">前へ</button>
+      <button id="next-button" onclick="nextQuestion()" disabled>次へ</button>
+    </div>
+    <div>
+      <button id="toggle-marked-btn" onclick="toggleMarkedOnly()">チェックした問題のみ出題</button>
+      <button onclick="goToInput()">問題入力ページに戻る</button>
+    </div>
+    <div id="accuracy">正答率: 0%</div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
