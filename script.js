@@ -40,7 +40,19 @@ function loadFromLocal(name) {
   return data ? JSON.parse(data) : null;
 }
 
-// 初期ページのセットアップ
+function loadProgress() {
+  const progress = loadFromLocal('quizProgress');
+  if (progress) {
+    score = progress.score || 0;
+    answered = progress.answered || 0;
+    document.getElementById('accuracy').textContent = `正答率: ${Math.round((score / answered) * 100)}%`;
+  }
+}
+
+function saveProgress() {
+  saveToLocal('quizProgress', { score, answered });
+}
+
 function setupListPage() {
   const list = document.getElementById('list-buttons');
   const savedLists = loadFromLocal('savedLists') || [];
@@ -80,6 +92,10 @@ function setupListPage() {
 
 function saveInputData() {
   const name = document.getElementById('current-list-name').value;
+  if (!name) {
+    alert("リスト名を入力してください。");
+    return;
+  }
   saveToLocal(name + '_true', document.getElementById('true-list').value);
   saveToLocal(name + '_false', document.getElementById('false-list').value);
 }
@@ -154,6 +170,7 @@ function generateQuestions() {
   markedIndices = new Set();
   usingMarkedOnly = false;
 
+  saveProgress();
   document.getElementById('input-screen').style.display = 'none';
   document.getElementById('quiz-screen').style.display = 'block';
   showQuestion();
@@ -205,6 +222,8 @@ function selectAnswer(index) {
   answered++;
   document.getElementById('next-button').disabled = false;
   document.getElementById('accuracy').textContent = `正答率: ${Math.round((score / answered) * 100)}%`;
+
+  saveProgress();
 }
 
 function nextQuestion() {
@@ -280,4 +299,7 @@ function toggleMark() {
   questions[currentQuestionIndex].checked = document.getElementById('mark-question').checked;
 }
 
-window.onload = setupListPage;
+window.onload = () => {
+  setupListPage();
+  loadProgress();
+};
