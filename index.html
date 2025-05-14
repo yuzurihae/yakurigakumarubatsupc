@@ -22,7 +22,12 @@
     <label>誤文（1行ずつ）</label><br>
     <textarea id="false-list" rows="8" cols="40"></textarea><br><br>
     <button onclick="generateQuestions()">出題開始</button>
-    <button onclick="setupListPage(); document.getElementById('input-screen').style.display='none'; document.getElementById('list-page').style.display='block';">保存して戻る</button>
+    <button onclick="
+      saveInputData();
+      setupListPage();
+      document.getElementById('input-screen').style.display='none';
+      document.getElementById('list-page').style.display='block';
+    ">保存して戻る</button>
   </div>
 
   <!-- クイズ画面 -->
