@@ -1,58 +1,496 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>薬理学○×3択問題</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>救われたい薬理学</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            line-height: 1.6;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        #input-screen, #quiz-screen {
+            display: none;
+        }
+        textarea {
+            width: 98%;
+            height: 150px;
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 15px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        #list-buttons input {
+            padding: 8px;
+            margin-right: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        #question-texts div {
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        #answer-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            text-align: center;
+        }
+        #answer-table th, #answer-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        #answer-table th {
+            background-color: #f2f2f2;
+        }
+        .answer-button {
+            width: 100%;
+            padding: 8px 0;
+        }
+        .correct { background-color: #28a745 !important; }
+        .incorrect { background-color: #dc3545 !important; }
+        #result-message {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+        #explanation {
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        h1, h2, h3 {
+            color: #0056b3;
+        }
+    </style>
 </head>
 <body>
-  <!-- リスト選択画面 -->
-  <div id="list-page">
-    <h2>問題作成ページ</h2>
-    <div id="list-buttons"></div>
-    <button id="add-list-btn">＋新しいリストを追加</button>
-  </div>
 
-  <!-- 問題入力画面 -->
-  <div id="input-screen" style="display: none;">
-    <h2>問題入力ページ</h2>
-    <input type="text" id="current-list-name" placeholder="リスト名"><br><br>
-    <label>正文（1行ずつ）</label><br>
-    <textarea id="true-list" rows="8" cols="40"></textarea><br><br>
-    <label>誤文（1行ずつ）</label><br>
-    <textarea id="false-list" rows="8" cols="40"></textarea><br><br>
-    <button onclick="generateQuestions()">出題開始</button>
-    <button onclick="
-      saveInputData();
-      setupListPage();
-      document.getElementById('input-screen').style.display='none';
-      document.getElementById('list-page').style.display='block';
-    ">保存して戻る</button>
-  </div>
+<div class="container">
+    <div id="list-page">
+        <h1>クイズリスト</h1>
+        <div id="list-buttons"></div>
+        <button id="add-list-btn">新しいリストを追加</button>
+    </div>
 
-  <!-- クイズ画面 -->
-  <div id="quiz-screen" style="display: none;">
-    <h2>薬理学○×3択クイズ</h2>
-    <div id="progress"></div>
-    <div id="question-texts"></div>
-    <table id="answer-table"></table>
-    <div>
-      <input type="checkbox" id="mark-question" onchange="toggleMark()"> チェック
-      <button onclick="toggleExplanation()">解説</button>
-    </div>
-    <div id="explanation" style="display: none;"></div>
-    <div id="result-message"></div>
-    <div>
-      <button onclick="prevQuestion()">前へ</button>
-      <button id="next-button" onclick="nextQuestion()" disabled>次へ</button>
-    </div>
-    <div>
-      <button id="toggle-marked-btn" onclick="toggleMarkedOnly()">チェックした問題のみ出題</button>
-      <button onclick="goToInput()">問題入力ページに戻る</button>
-    </div>
-    <div id="accuracy">正答率: 0%</div>
-  </div>
+    <div id="input-screen">
+        <h2>問題リストの作成・編集</h2>
+        <input type="text" id="current-list-name" placeholder="リスト名を入力">
+        <h3>正文リスト</h3>
+        <p>正しい文章を一行に一つずつ入力してください。</p>
+        <textarea id="true-list" placeholder="例: 日本の首都は東京である。"></textarea>
 
-  <script src="script.js"></script>
+        <h3>誤文リスト</h3>
+        <p>誤った文章を一行に一つずつ入力してください。<br>（任意）解説機能で正文と対にする場合、正文リストと同じ行数に対応する文章を入力してください。</p>
+        <textarea id="false-list" placeholder="例: 日本の首都は大阪である。"></textarea>
+        
+        <button onclick="generateQuestions()">この内容でクイズを開始</button>
+        <button onclick="document.getElementById('input-screen').style.display='none'; document.getElementById('list-page').style.display='block';">リスト選択に戻る</button>
+    </div>
+
+    <div id="quiz-screen">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 id="progress"></h3>
+            <h3 id="accuracy">正答率: -%</h3>
+        </div>
+        
+        <hr>
+        <div id="question-texts"></div>
+        <table id="answer-table"></table>
+        <div id="result-message"></div>
+        <hr>
+        
+        <div class="controls">
+            <button onclick="prevQuestion()">前の問題へ</button>
+            <button id="next-button" onclick="nextQuestion()">次の問題へ</button>
+        </div>
+        
+        <div class="controls">
+            <button onclick="toggleExplanation()">正解の文章を表示/非表示</button>
+            <div>
+                <input type="checkbox" id="mark-question" onclick="toggleMark()">
+                <label for="mark-question">この問題にチェックを入れる</label>
+            </div>
+        </div>
+        <div id="explanation" style="display:none;"></div>
+        
+        <hr style="margin-top: 20px;">
+        
+        <div class="controls">
+            <button id="toggle-marked-btn" onclick="toggleMarkedOnly()">チェックした問題のみ出題</button>
+            <button onclick="goToInput()">問題作成画面に戻る</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let trueList = [];
+let falseList = [];
+let questions = [];
+let currentQuestionIndex = 0;
+let score = 0;
+let answered = 0;
+let markedIndices = new Set();
+let usingMarkedOnly = false;
+let originalQuestions = [];
+
+function parseList(text) {
+  return text.split('\n').map(line => line.trim()).filter(Boolean);
+}
+
+function shuffle(array) {
+  return array.sort(() => Math.random() - 0.5);
+}
+
+const combinations = [
+  [true, true, true],
+  [true, true, false],
+  [true, false, true],
+  [true, false, false],
+  [false, true, true],
+  [false, true, false],
+  [false, false, true],
+  [false, false, false]
+];
+
+function saveToLocal(name, data) {
+  localStorage.setItem(name, JSON.stringify(data));
+}
+
+function loadFromLocal(name) {
+  const data = localStorage.getItem(name);
+  return data ? JSON.parse(data) : null;
+}
+
+function loadProgress() {
+  const progress = loadFromLocal('quizProgress');
+  if (progress) {
+    score = progress.score || 0;
+    answered = progress.answered || 0;
+    if (answered > 0) {
+        document.getElementById('accuracy').textContent = `正答率: ${Math.round((score / answered) * 100)}%`;
+    }
+  }
+}
+
+function saveProgress() {
+  saveToLocal('quizProgress', { score, answered });
+}
+
+function setupListPage() {
+  const list = document.getElementById('list-buttons');
+  const savedLists = loadFromLocal('savedLists') || [];
+
+  list.innerHTML = '';
+  savedLists.forEach((name, idx) => {
+    const container = document.createElement('div');
+    container.style.marginBottom = '10px';
+    
+    const input = document.createElement('input');
+    input.value = name;
+    input.onchange = () => {
+      savedLists[idx] = input.value;
+      saveToLocal('savedLists', savedLists);
+    };
+
+    const btn = document.createElement('button');
+    btn.textContent = '編集/開始';
+    btn.onclick = () => {
+      document.getElementById('list-page').style.display = 'none';
+      document.getElementById('input-screen').style.display = 'block';
+      document.getElementById('true-list').value = loadFromLocal(name + '_true') || '';
+      document.getElementById('false-list').value = loadFromLocal(name + '_false') || '';
+      document.getElementById('current-list-name').value = name;
+    };
+
+    container.appendChild(input);
+    container.appendChild(btn);
+    list.appendChild(container);
+  });
+
+  const addBtn = document.getElementById('add-list-btn');
+  addBtn.onclick = () => {
+    const newName = '新規リスト' + (savedLists.length + 1);
+    savedLists.push(newName);
+    saveToLocal('savedLists', savedLists);
+    setupListPage();
+  };
+}
+
+function saveInputData() {
+  const name = document.getElementById('current-list-name').value;
+  if (!name) {
+    alert("リスト名を入力してください。");
+    return;
+  }
+  saveToLocal(name + '_true', document.getElementById('true-list').value);
+  saveToLocal(name + '_false', document.getElementById('false-list').value);
+}
+
+/**
+ * 3つのアイテムオブジェクトから1つの問題オブジェクトを生成するヘルパー関数
+ * @param {Array<Object>} items - { text: string, answer: boolean } の形式のオブジェクト3つを含む配列
+ * @returns {Object} - 1つの問題オブジェクト
+ */
+function createQuestionFromItems(items) {
+    const zipped = items.map(item => ({ text: item.text, answer: item.answer }));
+    const shuffled = shuffle(zipped);
+    const finalStatements = shuffled.map(z => z.text);
+    const finalAnswers = shuffled.map(z => z.answer);
+
+    return {
+        statements: finalStatements,
+        answers: finalAnswers,
+        checked: false
+    };
+}
+
+/**
+ * 正文と誤文リストからクイズ問題を生成するメイン関数（最小問題数バージョン）
+ */
+function generateQuestions() {
+    saveInputData();
+
+    trueList = parseList(document.getElementById('true-list').value);
+    falseList = parseList(document.getElementById('false-list').value);
+
+    // いずれかのリストが空の場合はエラーを防ぐ
+    if (trueList.length === 0 || falseList.length === 0) {
+        alert("正文リストと誤文リストの両方に、少なくとも1つずつ項目を入力してください。");
+        return;
+    }
+
+    questions = [];
+
+    // --- 全ての文章が少なくとも1回は使われるように、リストが空になるまで問題を作成 ---
+    let itemsToUse = [
+        ...trueList.map(text => ({ text, answer: true })),
+        ...falseList.map(text => ({ text, answer: false }))
+    ];
+    itemsToUse = shuffle(itemsToUse); // 全ての文章をシャッフル
+
+    while (itemsToUse.length > 0) {
+        // 次の問題のために、最大3つの文章を取り出す
+        const questionItems = itemsToUse.splice(0, 3);
+
+        // 文章が3つに満たない場合（リストの最後の部分）、ランダムな文章で補充する
+        // これにより、全ての問題が必ず3つの選択肢を持つようになります
+        while (questionItems.length < 3) {
+            const addTrue = Math.random() < 0.5; // trueかfalseかランダムに選択
+            if (addTrue && trueList.length > 0) {
+                const randomTrueItem = trueList[Math.floor(Math.random() * trueList.length)];
+                questionItems.push({ text: randomTrueItem, answer: true });
+            } else if (falseList.length > 0) {
+                const randomFalseItem = falseList[Math.floor(Math.random() * falseList.length)];
+                questionItems.push({ text: randomFalseItem, answer: false });
+            } else {
+                // 両方のリストが空という万が一の事態に備える
+                break;
+            }
+        }
+        
+        questions.push(createQuestionFromItems(questionItems));
+    }
+
+    // --- 最終処理 ---
+    questions = shuffle(questions); // 生成された問題の順序を最終的にシャッフル
+
+    // クイズの状態をリセット
+    currentQuestionIndex = 0;
+    score = 0;
+    answered = 0;
+    markedIndices = new Set();
+    usingMarkedOnly = false;
+    originalQuestions = [];
+
+    saveProgress();
+    document.getElementById('input-screen').style.display = 'none';
+    document.getElementById('quiz-screen').style.display = 'block';
+    showQuestion();
+}
+
+
+function showQuestion() {
+  if (!questions || questions.length === 0) return;
+
+  const q = questions[currentQuestionIndex];
+  const qt = document.getElementById('question-texts');
+  qt.innerHTML = '';
+  q.statements.forEach((s, i) => {
+    qt.innerHTML += `<div>${String.fromCharCode(97 + i)}. ${s}</div>`;
+  });
+
+  const table = document.getElementById('answer-table');
+  table.innerHTML = '';
+  const header = document.createElement('tr');
+  header.innerHTML = `<th></th>${[...Array(8)].map((_, i) => `<th><button onclick="selectAnswer(${i})" class="answer-button" id="btn-${i}">${i + 1}</button></th>`).join('')}`;
+  table.appendChild(header);
+
+  ['a', 'b', 'c'].forEach((label, rowIndex) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<th>${label}.</th>${combinations.map(combo => `<td>${combo[rowIndex] ? '○' : '×'}</td>`).join('')}`;
+    table.appendChild(tr);
+  });
+
+  document.getElementById('mark-question').checked = q.checked;
+  document.getElementById('explanation').style.display = 'none';
+  document.getElementById('explanation').innerHTML = '';
+  document.getElementById('progress').textContent = `${currentQuestionIndex + 1}問目 / 全${questions.length}問`;
+  document.getElementById('next-button').disabled = true;
+  document.getElementById('result-message').textContent = '';
+}
+
+function selectAnswer(index) {
+  // 回答済みの場合は何もしない
+  if (document.getElementById('next-button').disabled === false) return;
+
+  const q = questions[currentQuestionIndex];
+  const isCorrect = combinations[index].every((val, i) => val === q.answers[i]);
+  const correctIndex = combinations.findIndex(combo =>
+    combo.every((val, i) => val === q.answers[i])
+  );
+
+  const result = document.getElementById('result-message');
+  result.style.color = isCorrect ? 'green' : 'red';
+  result.textContent = isCorrect ? '正解！' : `不正解。正解の番号は ${correctIndex + 1} です`;
+  
+  // 正解・不正解のボタンに色を付ける
+  document.getElementById(`btn-${correctIndex}`).classList.add('correct');
+  if (!isCorrect) {
+      document.getElementById(`btn-${index}`).classList.add('incorrect');
+  }
+
+  if (isCorrect) score++;
+  answered++;
+  if(answered > 0) {
+      document.getElementById('accuracy').textContent = `正答率: ${Math.round((score / answered) * 100)}%`;
+  }
+  
+  saveProgress();
+  document.getElementById('next-button').disabled = false;
+}
+
+function nextQuestion() {
+  if (currentQuestionIndex < questions.length - 1) {
+    currentQuestionIndex++;
+    showQuestion();
+  } else {
+    alert(`クイズ終了！\n全${questions.length}問お疲れ様でした。`);
+  }
+}
+
+function prevQuestion() {
+  if (currentQuestionIndex > 0) {
+    currentQuestionIndex--;
+    showQuestion();
+  }
+}
+
+function toggleExplanation() {
+  const exp = document.getElementById('explanation');
+  const q = questions[currentQuestionIndex];
+
+  if (exp.style.display === 'none') {
+    exp.style.display = 'block';
+    const trueLines = parseList(document.getElementById('true-list').value);
+    const falseLines = parseList(document.getElementById('false-list').value);
+
+    const explanations = q.statements.map((s, i) => {
+      const originalAnswer = q.answers[i];
+      const statementChar = String.fromCharCode(97 + i);
+      if (originalAnswer) {
+        return `<b>${statementChar}. (正)</b> ${s}`;
+      } else {
+        const falseIndex = falseLines.indexOf(s);
+        const mappedTrue = (falseIndex !== -1 && falseIndex < trueLines.length) 
+                           ? trueLines[falseIndex] 
+                           : '（対応する正文がありません）';
+        return `<b>${statementChar}. (誤)</b> 元の文: ${s}<br>→ <b>正しくは:</b> ${mappedTrue}`;
+      }
+    });
+
+    exp.innerHTML = explanations.join('<br><br>');
+  } else {
+    exp.style.display = 'none';
+    exp.innerHTML = '';
+  }
+}
+
+function goToInput() {
+  if (confirm('クイズを中断して問題作成画面に戻りますか？現在の進捗は失われます。')) {
+      document.getElementById('quiz-screen').style.display = 'none';
+      document.getElementById('input-screen').style.display = 'block';
+  }
+}
+
+function toggleMarkedOnly() {
+  const btn = document.getElementById('toggle-marked-btn');
+
+  if (!usingMarkedOnly) {
+    const markedQuestions = questions.filter(q => q.checked);
+    if (markedQuestions.length === 0) {
+      alert('チェックされた問題がありません。');
+      return;
+    }
+    originalQuestions = questions;
+    questions = markedQuestions;
+    currentQuestionIndex = 0;
+    usingMarkedOnly = true;
+    btn.textContent = '全問題に戻す';
+  } else {
+    questions = originalQuestions;
+    currentQuestionIndex = 0;
+    usingMarkedOnly = false;
+    btn.textContent = 'チェックした問題のみ出題';
+  }
+
+  showQuestion();
+}
+
+function toggleMark() {
+  questions[currentQuestionIndex].checked = document.getElementById('mark-question').checked;
+}
+
+window.onload = () => {
+  setupListPage();
+  loadProgress();
+};
+</script>
+
 </body>
 </html>
